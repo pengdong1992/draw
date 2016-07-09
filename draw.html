@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			margin:0; 
+			padding:0;
+		}
+		ul{
+			list-style: none;
+			width:500px;
+			position: relative;
+			margin:100px auto;
+		}
+		li{
+			width:100px;
+			height:100px;
+			border:1px #000 solid;
+			box-sizing: border-box;
+			position:absolute;
+			top:0;
+			left:0;
+			text-align:center;
+			line-height: 100px;
+		}
+		li.show{
+			background-color:red;
+		}
+	</style>
+</head>
+<body>
+	<ul>
+		<li>刀</li>
+		<li>枪</li>
+		<li>剑</li>
+		<li>戟</li>
+		<li>斧</li>
+		<li>钺</li>
+		<li>钩</li>
+		<li>叉</li>
+		<li>菜刀</li>
+		<li>板凳</li>
+		<li>起子</li>
+		<li>牙刷</li>
+	</ul>
+	<script type="text/javascript">
+		var aLi = document.getElementsByTagName('li');
+		var onoff = true; //开关
+		function Draw(){
+			this.initInow = -1;  //默认起始位置
+			this.saveInit = -1;  //保存起始位置
+			this.timer = null; //设置定时器
+		}
+
+		Draw.prototype.init = function(data){	 //初始化	     
+			this.endInow = data.Index;	//后台返回中奖索引
+			this.prize = data.Prize;
+			this.targetInow = 12*parseInt(Math.random()*3+2) +this.endInow;   //运动总格数				  
+		}
+
+		Draw.prototype.sort = function(){   //格子排列。
+			var XY = {
+				x : ["0","100","200","300","400","400","400","300","200","100","0","0"],
+				y : ["0","0","0","0","0","100","200","200","200","200","200","100"]
+			}			
+			for(var i=0;i<aLi.length;i++){
+				aLi[i].style.left = XY.x[i]+'px';
+				aLi[i].style.top = XY.y[i]+'px';
+			}			
+		}
+		Draw.prototype.fnRun = function(){   //抽奖程序
+			clearTimeout( this.timer ); //清除定时器
+			this.timer = null;   //释放内存
+			if(this.initInow == this.targetInow){      //抽奖结束
+				this.initInow = this.endInow - 1;   //将结束位置给起始位置
+				this.saveInit = this.endInow - 1;	//保存起始位置
+				alert("恭喜您！获得了"+this.prize);   //弹出中奖信息	
+				onoff = true;		 	 
+				return;   //返回
+			}else{
+				this.initInow++;    //索引累加
+				// this.initInow = this.initInow;    //更新索引
+				 for(var i=0;i<aLi.length;i++){  //清空class
+					aLi[i].className = "";
+				}
+				aLi[this.initInow%12].className = "show";  //给当前添加class
+				// console.log( _initInow%12 )
+				return  (function(){   //回调自己
+							if(draw.initInow - draw.saveInit <= 5){  //初始前几个速度递增
+								 draw.timer = setTimeout(function(){
+									draw.fnRun();
+								},(6-(draw.initInow - draw.saveInit) )*100);
+							}else if(draw.initInow - draw.saveInit > 5 && draw.initInow <= draw.targetInow - 5){    //中间匀速
+								 draw.timer = setTimeout(function(){
+									draw.fnRun();
+								},100);
+							}else{			//最后速度递减					 
+								 draw.timer = setTimeout(function(){
+									draw.fnRun();
+								},(6-(draw.targetInow - draw.initInow))*100);
+							}						 
+						}());		 
+			}
+		}
+
+		var draw = new Draw();
+		draw.sort();
+
+		 
+		window.onclick = function(){
+			if(onoff){
+				onoff = false;
+				var json = {
+					index : [0,1,2,3,4,5,6,7,8,9,10,11],
+					prize : ["刀","枪","剑","戟","斧","钺","钩","叉","菜刀","板凳","起子","牙刷"]
+				}
+				var IX = Math.floor( Math.random()*12);
+				var data = {
+					Index : json.index[ IX ],
+					Prize : json.prize[ IX ]
+				}
+					console.log( data )
+					draw.init(data);
+					draw.fnRun();	
+			}			 		 
+		}
+	</script>
+</body>
+</html>
